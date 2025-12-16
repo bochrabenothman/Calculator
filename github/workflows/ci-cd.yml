@@ -1,0 +1,46 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-test-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout du code
+      uses: actions/checkout@v4
+
+    - name: Installation de Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Installation des dépendances
+      run: |
+        pip install -r requirements.txt
+
+    - name: Exécution des tests
+      run: |
+        pytest
+
+    - name: Connexion à Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build de l'image Docker
+      run: |
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/calculatrice-flask:latest .
+
+    - name: Push de l'image Docker
+      run: |
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/calculatrice-flask:latest
+
+    - name: Déploiement automatique
+      run: |
+        echo "Déploiement automatique simulé (image prête)"
